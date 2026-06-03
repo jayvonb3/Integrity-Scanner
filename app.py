@@ -1,31 +1,29 @@
 import streamlit as st
-import requests
 
-FORBIDDEN_INGREDIENTS = [
-    "natural flavors", "soy lecithin", "carrageenan", "bha", "bht", 
-    "high-fructose corn syrup", "red 40", "yellow 5", "partially hydrogenated", 
-    "fortified", "enriched", "canola oil", "soybean oil", "sunflower oil"
-]
+st.set_page_config(layout="wide")
 
-st.title("Integrity Scanner")
-
-# Simple text input for barcode
-barcode = st.text_input("Enter Barcode (Type or Paste):")
-
-if barcode:
-    url = f"https://world.openfoodfacts.org/api/v0/product/{barcode}.json"
-    response = requests.get(url).json()
-    
-    if response.get('status') == 1:
-        product = response['product']
-        ingredients = product.get('ingredients_text', '').lower()
-        st.write(f"### {product.get('product_name', 'Unknown')}")
+html_code = """
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+</head>
+<body>
+    <div id="interactive" class="viewport"></div>
+    <h2 id="result">Scanning...</h2>
+    <script>
+        Quagga.init({
+            inputStream: { type: "LiveStream", target: document.querySelector('#interactive') },
+            decoder: { readers: ["ean_reader"] }
+        }, function(err) { Quagga.start(); });
         
-        violations = [i for i in FORBIDDEN_INGREDIENTS if i in ingredients]
-        
-        if violations:
-            st.error(f"REJECTED: Found {', '.join(violations)}")
-        else:
-            st.success("APPROVED: Clean Integrity")
-    else:
-        st.warning("Product not found.")
+        Quagga.onDetected(function(data) {
+            document.getElementById('result').innerHTML = "Barcode: " + data.codeResult.code;
+            // You can add a redirect here to your search logic
+        });
+    </script>
+</body>
+</html>
+"""
+
+st.components.v1.html(html_code, height=500)
