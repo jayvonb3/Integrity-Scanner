@@ -1,6 +1,5 @@
 import streamlit as st
 import requests
-from streamlit_barcode_scanner import streamlit_barcode_scanner
 
 FORBIDDEN_INGREDIENTS = [
     "natural flavors", "soy lecithin", "carrageenan", "bha", "bht", 
@@ -8,26 +7,25 @@ FORBIDDEN_INGREDIENTS = [
     "fortified", "enriched", "canola oil", "soybean oil", "sunflower oil"
 ]
 
-st.title("Elite Nutrition Integrity Scanner")
+st.title("Integrity Scanner")
 
-# Camera scanner component
-barcode = streamlit_barcode_scanner()
+# Simple text input for barcode
+barcode = st.text_input("Enter Barcode (Type or Paste):")
 
 if barcode:
-    st.write(f"Scanned Barcode: {barcode}")
     url = f"https://world.openfoodfacts.org/api/v0/product/{barcode}.json"
     response = requests.get(url).json()
     
     if response.get('status') == 1:
         product = response['product']
         ingredients = product.get('ingredients_text', '').lower()
-        st.write(f"### Product: {product.get('product_name', 'Unknown')}")
+        st.write(f"### {product.get('product_name', 'Unknown')}")
         
-        found_violations = [item for item in FORBIDDEN_INGREDIENTS if item in ingredients]
+        violations = [i for i in FORBIDDEN_INGREDIENTS if i in ingredients]
         
-        if found_violations:
-            st.error(f"REJECTED: Contains forbidden items: {', '.join(found_violations)}")
+        if violations:
+            st.error(f"REJECTED: Found {', '.join(violations)}")
         else:
-            st.success("APPROVED: Meets Integrity Standards")
+            st.success("APPROVED: Clean Integrity")
     else:
-        st.warning("Product not found in database.")
+        st.warning("Product not found.")
