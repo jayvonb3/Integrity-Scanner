@@ -1,5 +1,6 @@
 import streamlit as st
 import requests
+from streamlit_barcode_scanner import streamlit_barcode_scanner
 
 FORBIDDEN_INGREDIENTS = [
     "natural flavors", "soy lecithin", "carrageenan", "bha", "bht", 
@@ -8,9 +9,12 @@ FORBIDDEN_INGREDIENTS = [
 ]
 
 st.title("Elite Nutrition Integrity Scanner")
-barcode = st.text_input("Enter Product Barcode:")
+
+# Camera scanner component
+barcode = streamlit_barcode_scanner()
 
 if barcode:
+    st.write(f"Scanned Barcode: {barcode}")
     url = f"https://world.openfoodfacts.org/api/v0/product/{barcode}.json"
     response = requests.get(url).json()
     
